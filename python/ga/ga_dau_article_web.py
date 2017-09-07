@@ -18,7 +18,7 @@ def get_secret():
 
 def get_view_id():
   secret = get_secret()
-  return secret["view_id"]
+  return secret["view_id_web"]
 
 def get_unique_users(service, view_id, exec_date, start_index):
   results = service.data().ga().get(
