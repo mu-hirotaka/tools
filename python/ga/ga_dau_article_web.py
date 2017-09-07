@@ -74,7 +74,7 @@ def main():
   
   # Write Output File(CSV)
   exec_date_str = exec_date.replace('-','')
-  csv_filename = "ga_dau_article_web_" + exec_date_str + ".csv"
+  csv_filename = "./csv/ga_dau_article_web_" + exec_date_str + ".csv"
   fout = codecs.open(csv_filename, 'w', 'utf-8')
    
   count = 0;
@@ -95,7 +95,7 @@ def main():
   print(count);
 
   # import data to Bigquery
-  schema_filename = 'schema_event_dau_article_web.txt'
+  schema_filename = './schema/event_dau_article_web.txt'
   tablename_prefix = 'dau_article_web_'
   print("import data to Bigquery")
   command_str = 'bq load event.' + tablename_prefix + exec_date_str + ' ' + csv_filename + ' ' + schema_filename
