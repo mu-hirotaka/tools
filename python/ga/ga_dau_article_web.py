@@ -20,14 +20,15 @@ def get_view_id():
   secret = get_secret()
   return secret["view_id"]
 
-def getUniqueUsers(service, view_id, exec_date, start_index):
+def get_unique_users(service, view_id, exec_date, start_index):
   results = service.data().ga().get(
     ids='ga:' + view_id,
     start_date=exec_date,
     end_date=exec_date,
     metrics='ga:users,ga:pageviews',
-    dimensions='ga:landingPagePath',
-    filters='ga:landingPagePath=~^\/[0-9]+$;ga:sourceMedium=@organic;ga:landingPagePath!@topics;ga:landingPagePath!@page;ga:landingPagePath!@?',
+    dimensions='ga:landingPagePath,ga:deviceCategory',
+    filters='ga:landingPagePath=~^\/[0-9]+$',
+    sort='-ga:users',
     start_index=start_index,
     max_results=10000,
     samplingLevel='HIGHER_PRECISION'
@@ -66,33 +67,39 @@ def main():
   # データ収集
   # UUを日単位で取得
   #--------------------------------------------
-  rows1 = getUniqueUsers(service, view_id, exec_date, 1)
-  rows2 = getUniqueUsers(service, view_id, exec_date, 10000)
+  rows1 = get_unique_users(service, view_id, exec_date, 1)
+  rows2 = get_unique_users(service, view_id, exec_date, 10000)
   rows = rows1 + rows2
   
   # Write Output File(CSV)
   exec_date_str = exec_date.replace('-','')
-  csvFileName = "ga_dau_per_page_" + exec_date_str + ".csv"
-  fout = codecs.open(csvFileName, 'w', 'utf-8')
+  csv_filename = "ga_dau_article_web_" + exec_date_str + ".csv"
+  fout = codecs.open(csv_filename, 'w', 'utf-8')
    
   count = 0;
   for row in rows:
     pagepath = row[0];
-    users = row[1];
-    pageviews = row[2];
+    device = row[1];
+    users = row[2];
+    pageviews = row[3];
     filestr = pagepath.replace('/','') \
+      + "," + device \
       + "," + users \
       + "," + pageviews \
       + "," + exec_date + "\n"
      
     fout.write(filestr)
     count = count+1;
-   
+
   print(count);
-  print("command start")
-  command_str = 'bq load test.dau_' + exec_date_str + ' ga_dau_per_page_' + exec_date_str + '.csv schema_dau.txt'
+
+  # import data to Bigquery
+  schema_filename = 'schema_event_dau_article_web.txt'
+  tablename_prefix = 'dau_article_web_'
+  print("import data to Bigquery")
+  command_str = 'bq load event.' + tablename_prefix + exec_date_str + ' ' + csv_filename + ' ' + schema_filename
   os.system(command_str)
-  print("command end")
+  print("end")
 
 if __name__ == '__main__':
   main()
