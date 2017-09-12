@@ -27,7 +27,7 @@ def get_unique_users(service, view_id, exec_date, start_index):
     end_date=exec_date,
     metrics='ga:users,ga:pageviews',
     dimensions='ga:landingPagePath,ga:deviceCategory,ga:source',
-    filters='ga:landingPagePath=~^\/[0-9]+$;ga:source==Facebook',
+    filters='ga:landingPagePath=~^\/[0-9]+$;ga:source==yahoo',
     sort='-ga:users',
     start_index=start_index,
     max_results=10000,
@@ -68,7 +68,9 @@ def main():
   # UUを日単位で取得
   #--------------------------------------------
   rows1 = get_unique_users(service, view_id, exec_date, 1)
-  rows = rows1
+  rows2 = get_unique_users(service, view_id, exec_date, 10001)
+  rows3 = get_unique_users(service, view_id, exec_date, 20001)
+  rows = rows1 + rows2 + rows3
   
   # Write Output File(CSV)
   exec_date_str = exec_date.replace('-','')
