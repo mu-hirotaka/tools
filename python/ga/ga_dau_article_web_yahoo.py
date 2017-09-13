@@ -13,7 +13,7 @@ import datetime
 import os
  
 def get_secret():
-  secret = json.load(open(os.path.join(os.path.expanduser('~'), '.google_analytics', 'secret.json')))
+  secret = json.load(open(os.path.join(os.path.expanduser('.'), '.google_analytics', 'secret.json')))
   return secret
 
 def get_view_id():

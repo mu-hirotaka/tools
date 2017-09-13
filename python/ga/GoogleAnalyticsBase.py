@@ -85,7 +85,7 @@ def print_results(results):
     print('No results found')
 
 def get_secret():
-  secret = json.load(open(os.path.join(os.path.expanduser('~'), '.google_analytics', 'secret.json')))
+  secret = json.load(open(os.path.join(os.path.expanduser('.'), '.google_analytics', 'secret.json')))
   return secret
 
 def get_service_account_email():
@@ -94,7 +94,7 @@ def get_service_account_email():
 
 def get_key_file_location():
   secret = get_secret()
-  return os.path.join(os.path.expanduser('~'), secret["key_file_location"])
+  return os.path.join(os.path.expanduser('.'), secret["key_file_location"])
 
 def main():
   # Define the auth scopes to request.
