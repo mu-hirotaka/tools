@@ -20,7 +20,7 @@ def get_view_id():
   secret = get_secret()
   return secret["view_id_web"]
 
-def get_unique_users(service, view_id, exec_date, start_index):
+def get_unique_users(service, view_id, exec_date, start_index, max_results):
   results = service.data().ga().get(
     ids='ga:' + view_id,
     start_date=exec_date,
@@ -30,7 +30,7 @@ def get_unique_users(service, view_id, exec_date, start_index):
     filters='ga:landingPagePath=~^\/[0-9]+$;ga:source==Facebook',
     sort='-ga:users',
     start_index=start_index,
-    max_results=10000,
+    max_results=max_results,
     samplingLevel='HIGHER_PRECISION'
   ).execute()
   rows = results.get('rows')
@@ -38,6 +38,26 @@ def get_unique_users(service, view_id, exec_date, start_index):
     return rows
   else:
     return []
+
+def writeCsv(csv_filename, exec_date, rows):
+  write_count = 0;
+  fout = codecs.open(csv_filename, 'a', 'utf-8')
+  for row in rows:
+    pagepath = row[0];
+    device = row[1];
+    source = row[2];
+    users = row[3];
+    pageviews = row[4];
+    filestr = pagepath.replace('/','') \
+      + "," + device \
+      + "," + users \
+      + "," + pageviews \
+      + "," + source \
+      + "," + exec_date + "\n"
+     
+    fout.write(filestr)
+    write_count = write_count+1;
+  return write_count
 
 def main():
 
@@ -63,34 +83,26 @@ def main():
   print("")
   print("exec_date:" + exec_date)
    
-  #--------------------------------------------
-  # データ収集
-  # UUを日単位で取得
-  #--------------------------------------------
-  rows1 = get_unique_users(service, view_id, exec_date, 1)
-  rows = rows1
-  
   # Write Output File(CSV)
   exec_date_str = exec_date.replace('-','')
   csv_filename = "./csv/ga_dau_article_web_facebook_" + exec_date_str + ".csv"
   fout = codecs.open(csv_filename, 'w', 'utf-8')
    
+  #--------------------------------------------
+  # データ収集
+  # UUを日単位で取得
+  #--------------------------------------------
+  flg = 1
   count = 0;
-  for row in rows:
-    pagepath = row[0];
-    device = row[1];
-    source = row[2];
-    users = row[3];
-    pageviews = row[4];
-    filestr = pagepath.replace('/','') \
-      + "," + device \
-      + "," + users \
-      + "," + pageviews \
-      + "," + source \
-      + "," + exec_date + "\n"
-     
-    fout.write(filestr)
-    count = count+1;
+  start_index = 1
+  max_results = 10000
+  while flg > 0:
+    rows = get_unique_users(service, view_id, exec_date, start_index, max_results)
+    start_index = start_index + max_results
+    flg = len(rows)
+    if flg > 0: count = count + writeCsv(csv_filename, exec_date, rows);
+    # 結果数がmax_results以下であれば次APIを回す必要がない為、処理終了
+    if flg < max_results: flg = 0;
 
   print(count);
 
